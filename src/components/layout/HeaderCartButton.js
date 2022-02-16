@@ -5,6 +5,7 @@ import CartContext from "../../store/cart-context";
 
 const HeaderCartButton = props => {
   const [btnIsHighlighted, setBtnIsHighlighted] = useState(false);
+
   const cartCtx = useContext(CartContext);
   const { items } = cartCtx;
 
@@ -19,8 +20,10 @@ const HeaderCartButton = props => {
   }, [items]);
 
   return (
-    <button className={btnClasses} onClick={props.onClick}>
-      <span className={classes.icon}><CartIcon /></span>
+    <button className={btnClasses} onClick={cartCtx.showCart}>
+      <span className={classes.icon}>
+        <CartIcon />
+      </span>
       <span>Your cart</span>
       <span className={classes.badge}>{numberOfCartItems}</span>
     </button>

@@ -1,46 +1,42 @@
-import { useContext } from "react";
-import classes from "./Cart.module.css";
-import Modal from "../ui/Modal";
+import { useContext, useState } from "react";
 import CartContext from "../../store/cart-context";
-import CartItem from "./CartItem";
+import Modal from "../ui/Modal";
+import PostSubmitModal from "./cart-modal-actions/PostSubmitModal";
+import CartModalContent from "./cart-modal-actions/CartModalContent";
 
 const Cart = props => {
+  const [isCheckout, setIsCheckout] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [didSubmit, setDidSubmit] = useState(false);
+  const [httpError, setHttpError] = useState();
   const cartCtx = useContext(CartContext);
 
-  const totalAmount = `$${cartCtx.totalAmount.toFixed(2)}`;
-  const hasItems = cartCtx.items.length > 0;
+  const orderHandler = () => setIsCheckout(true);
 
-  const cartItemAddHandler = item => cartCtx.addItem({ ...item, amount: 1 });
-  const cartItemRemoveHandler = id => cartCtx.removeItem(id);
+  const submitOrderHandler = async userData => {
+    setIsSubmitting(true);
+    try {
+      const response = await fetch("https://http-requests-ebdd0-default-rtdb.firebaseio.com/orders.json", {
+        method: "POST",
+        body: JSON.stringify({ user: userData, orderedItems: cartCtx.items }),
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Something went wrong!");
+      setIsSubmitting(false);
+      setDidSubmit(true);
+      cartCtx.clearCart();
+    } catch (err) {
+      setHttpError(err.message);
+    }
+  };
 
-  const cartItemsList = (
-    <ul className={classes["cart-items"]}>
-      {cartCtx.items.map(item => (
-        <CartItem
-          key={item.id}
-          name={item.name}
-          amount={item.amount}
-          price={item.price}
-          onAdd={cartItemAddHandler.bind(null, item)}
-          onRemove={cartItemRemoveHandler.bind(null, item.id)}
-        />
-      ))}
-    </ul>
-  );
+  let modalContent = "";
+  if (httpError) modalContent = <h2>{httpError}</h2>;
+  else if (isSubmitting) modalContent = <h2>Your order is being processed...</h2>;
+  else if (didSubmit) modalContent = <PostSubmitModal />;
+  else modalContent = <CartModalContent isCheckout={isCheckout} onSubmit={submitOrderHandler} onOrder={orderHandler} />;
 
-  return (
-    <Modal onClose={props.onHideCart}>
-      {cartItemsList}
-      <div className={classes.total}>
-        <span>Total Amount</span>
-        <span>{totalAmount}</span>
-      </div>
-      <div className={classes.actions}>
-        <button className={classes["button--alt"]} onClick={props.onHideCart}>Close</button>
-        {hasItems && <button className={classes.button}>Order</button>}
-      </div>
-    </Modal>
-  );
+  return <Modal onClose={props.onHideCart}>{modalContent}</Modal>;
 };
 
 export default Cart;

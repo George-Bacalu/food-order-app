@@ -6,7 +6,7 @@ const MealItemForm = props => {
   const [amountIsValid, setAmountIsValid] = useState(true);
   const amountInputRef = useRef();
 
-  const inputProperties = { id: "amount_" + props.id, type: "number", min: "1", max: "5", step: "1", defaultValue: "1" };
+  const inputData = { id: "amount_" + props.id, type: "number", min: "1", max: "5", step: "1", defaultValue: "1" };
 
   const submitHandler = event => {
     event.preventDefault();
@@ -22,9 +22,9 @@ const MealItemForm = props => {
 
   return (
     <form className={classes.form} onSubmit={submitHandler}>
-      <Input ref={amountInputRef} label="Amount" input={inputProperties} />
+      <Input ref={amountInputRef} label="Amount" input={inputData} />
       <button>+ Add</button>
-      {!amountIsValid && <p style={{ color: "red" }}>Please enter a valid amount (1-5)!</p>}
+      {!amountIsValid && <p className={classes["error-text"]}>Please enter a valid amount (1-5)!</p>}
     </form>
   );
 };
